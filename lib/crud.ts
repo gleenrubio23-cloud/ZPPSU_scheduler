@@ -59,10 +59,6 @@ export const CRUD: Record<string, CrudDef> = {
       department_id: { label: 'Department', type: 'select', required: true, options: departmentOptions },
     },
   },
-  skills: {
-    table: 'skills', page: '/lookups', single: 'skill', order: 'name', roles: ['admin', 'chair'],
-    fields: { name: { label: 'Skill', required: true } },
-  },
   fields: {
     table: 'fields', page: '/lookups', single: 'field of study', order: 'name', roles: ['admin', 'chair'],
     fields: { name: { label: 'Field of study', required: true } },

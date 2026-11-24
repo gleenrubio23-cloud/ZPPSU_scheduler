@@ -1,6 +1,6 @@
 'use server';
 /**
- * Faculty profile changes: degrees, skills, certifications, teaching history, availability.
+ * Faculty profile changes: degrees, certifications, teaching history, availability.
  * A faculty member may edit their own profile; new credentials stay "pending" until verified.
  * The admin, or the chair of the faculty member's department, may edit any of it and verify credentials.
  */
@@ -58,10 +58,8 @@ export async function updateProfile(form: FormData): Promise<void> {
         await flash('Enter the name of the certification.', 'error');
         break;
       }
-      const skillId = int(form, 'skill_id') || null;
-      if (skillId && !(await db.val(sql`SELECT id FROM skills WHERE id = ${skillId}`))) return deny();
-      await db.exec(sql`INSERT INTO faculty_certifications (faculty_id, name, issuer, year_obtained, skill_id, status, verified_by)
-        VALUES (${id}, ${str(form, 'name')}, ${str(form, 'issuer') || null}, ${year}, ${skillId}, ${newStatus}, ${verifier})`);
+      await db.exec(sql`INSERT INTO faculty_certifications (faculty_id, name, issuer, year_obtained, status, verified_by)
+        VALUES (${id}, ${str(form, 'name')}, ${str(form, 'issuer') || null}, ${year}, ${newStatus}, ${verifier})`);
       await flash(canVerify ? 'Certification added.' : 'Certification added. It will count once your chair verifies it.');
       break;
     }
@@ -83,20 +81,6 @@ export async function updateProfile(form: FormData): Promise<void> {
     case 'del_cert':
       await db.exec(sql`DELETE FROM faculty_certifications WHERE id = ${rowId} AND faculty_id = ${id}`);
       await flash('Certification removed.');
-      break;
-    case 'save_skill': {
-      const skillId = int(form, 'skill_id');
-      if (await db.val(sql`SELECT id FROM skills WHERE id = ${skillId}`)) {
-        await db.exec(sql`INSERT INTO faculty_skills (faculty_id, skill_id, proficiency)
-          VALUES (${id}, ${skillId}, ${clamp(int(form, 'proficiency'), 1, 5)})
-          ON CONFLICT (faculty_id, skill_id) DO UPDATE SET proficiency = EXCLUDED.proficiency`);
-        await flash('Skill saved.');
-      }
-      break;
-    }
-    case 'del_skill':
-      await db.exec(sql`DELETE FROM faculty_skills WHERE faculty_id = ${id} AND skill_id = ${rowId}`);
-      await flash('Skill removed.');
       break;
     case 'save_taught': {
       const subjectId = int(form, 'subject_id');

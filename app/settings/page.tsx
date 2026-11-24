@@ -12,8 +12,7 @@ export const metadata: Metadata = { title: 'Settings' };
 
 const LABELS: [keyof Weights, string, string][] = [
   ['degree', 'Degree alignment', 'Highest verified degree in a field the subject accepts'],
-  ['skills', 'Skills', 'Proficiency in the skills the subject requires'],
-  ['cert', 'Certifications', 'Verified credentials that prove a required skill'],
+  ['cert', 'Certifications', 'Verified certifications, licenses, and trainings'],
   ['experience', 'Teaching experience', 'Terms the subject was taught before, and years of teaching'],
 ];
 

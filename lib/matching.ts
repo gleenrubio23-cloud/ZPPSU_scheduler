@@ -2,18 +2,15 @@
  * Qualification-based faculty matching.
  *
  * For one class offering, every active faculty member is scored against the
- * subject's requirements. The score has four parts, each from 0 to 100:
+ * subject's requirements. The score has three parts, each from 0 to 100:
  *
  *   Degree      - best VERIFIED degree in a field accepted by the subject
  *                 (bachelor's 70, master's 85, doctorate 100, none 0)
- *   Skills      - average self-rated proficiency in the subject's required skills
- *   Credentials - VERIFIED certifications that prove a required skill
- *                 (one = 70, two or more = 100)
+ *   Credentials - VERIFIED certifications, licenses and trainings
+ *                 (none = 0, one = 70, two or more = 100)
  *   Experience  - terms the subject was taught before (70%) and years of teaching (30%)
  *
- * The parts are combined using the weights in Matching Settings. A part that
- * does not apply (the subject lists no required skills) is left out and the
- * remaining weights are rescaled.
+ * The parts are combined using the weights in Matching Settings.
  *
  * Hard rules make a faculty member ineligible regardless of score:
  *   1. no verified degree at the subject's minimum level
@@ -38,14 +35,13 @@ export async function facultyLoad(facultyId: number, termId: number, excludeOffe
     WHERE o.faculty_id = ${facultyId} AND o.term_id = ${termId} AND o.id <> ${excludeOffering}`)) ?? 0;
 }
 
-export type Weights = { degree: number; skills: number; cert: number; experience: number };
+export type Weights = { degree: number; cert: number; experience: number };
 
 export async function matchingWeights(): Promise<Weights> {
   const s = new Map((await db.rows<{ name: string; value: string }>(sql`SELECT name, value FROM settings`))
     .map((r) => [r.name, Number(r.value)]));
   return {
     degree: s.get('w_degree') ?? 40,
-    skills: s.get('w_skills') ?? 30,
     cert: s.get('w_cert') ?? 15,
     experience: s.get('w_experience') ?? 15,
   };
@@ -61,7 +57,7 @@ export type Candidate = {
   eligible: boolean;
   reasons: string[];   // why the person is ineligible
   notes: string[];     // plain-language explanation of the score
-  parts: { degree: number; skills: number | null; cert: number | null; experience: number };
+  parts: { degree: number; cert: number; experience: number };
   total: number;
   load: number;
   max: number;
@@ -75,10 +71,6 @@ export async function rankCandidates(offering: OfferingRef, q: Db = db): Promise
   if (!subject) return [];
   const reqFields = (await q.rows<{ field_id: number }>(sql`SELECT field_id FROM subject_fields WHERE subject_id = ${subject.id}`))
     .map((r) => r.field_id);
-  const reqSkills = await q.rows<{ id: number; name: string }>(sql`
-    SELECT k.id, k.name FROM subject_skills ss JOIN skills k ON k.id = ss.skill_id
-    WHERE ss.subject_id = ${subject.id} ORDER BY k.name`);
-  const skillIds = reqSkills.map((s) => s.id);
   const weights = await matchingWeights();
 
   const faculty = await q.rows<FacultyRow>(sql`
@@ -94,11 +86,9 @@ export async function rankCandidates(offering: OfferingRef, q: Db = db): Promise
   // Load everything needed for all faculty at once (a few queries instead of several per person).
   const degrees = await q.rows<{ faculty_id: number; level: string; title: string; field_id: number }>(sql`
     SELECT faculty_id, level, title, field_id FROM faculty_degrees WHERE status = 'verified'`);
-  const skills = await q.rows<{ faculty_id: number; skill_id: number; proficiency: number }>(sql`
-    SELECT faculty_id, skill_id, proficiency FROM faculty_skills WHERE skill_id = ANY(${skillIds})`);
   const certs = new Map((await q.rows<{ faculty_id: number; n: number }>(sql`
     SELECT faculty_id, COUNT(*) AS n FROM faculty_certifications
-    WHERE status = 'verified' AND skill_id = ANY(${skillIds}) GROUP BY faculty_id`)).map((r) => [r.faculty_id, r.n]));
+    WHERE status = 'verified' GROUP BY faculty_id`)).map((r) => [r.faculty_id, r.n]));
   const declared = new Map((await q.rows<{ faculty_id: number; terms_taught: number }>(sql`
     SELECT faculty_id, terms_taught FROM faculty_subjects_taught WHERE subject_id = ${subject.id}`))
     .map((r) => [r.faculty_id, r.terms_taught]));
@@ -144,41 +134,23 @@ export async function rankCandidates(offering: OfferingRef, q: Db = db): Promise
       reasons.push(`No verified ${LEVELS[subject.min_degree_level].toLowerCase()} degree or higher`);
     }
 
-    // ----- Skills and credentials -----
-    let skillScore: number | null = null;
-    let certScore: number | null = null;
-    if (reqSkills.length) {
-      const have = new Map(skills.filter((s) => s.faculty_id === f.id).map((s) => [s.skill_id, s.proficiency]));
-      let sum = 0;
-      const missing: string[] = [];
-      for (const s of reqSkills) {
-        const p = have.get(s.id);
-        if (p !== undefined) sum += Math.min(5, p) / 5;
-        else missing.push(s.name);
-      }
-      skillScore = round((sum / reqSkills.length) * 100, 1);
-      notes.push(missing.length ? `Missing skill: ${missing.join(', ')}` : `Has all ${reqSkills.length} required skill(s)`);
-
-      const n = certs.get(f.id) ?? 0;
-      certScore = n >= 2 ? 100 : n === 1 ? 70 : 0;
-      if (n) notes.push(`${n} related verified certification(s)`);
-    }
+    // ----- Credentials -----
+    const n = certs.get(f.id) ?? 0;
+    const certScore = n >= 2 ? 100 : n === 1 ? 70 : 0;
+    if (n) notes.push(`${n} verified certification(s)`);
 
     // ----- Experience -----
     const taught = Math.max(declared.get(f.id) ?? 0, recorded.get(f.id) ?? 0);
     const expScore = round((Math.min(taught, 4) / 4) * 70 + (Math.min(f.years_teaching, 10) / 10) * 30, 1);
     notes.push(taught ? `Taught this subject for ${taught} term(s)` : 'Has not taught this subject yet');
 
-    // ----- Weighted total (parts that do not apply are skipped) -----
-    const parts = { degree: degreeScore, skills: skillScore, cert: certScore, experience: expScore };
+    // ----- Weighted total -----
+    const parts = { degree: degreeScore, cert: certScore, experience: expScore };
     let total = 0;
     let weightSum = 0;
     for (const key of Object.keys(parts) as (keyof typeof parts)[]) {
-      const score = parts[key];
-      if (score !== null) {
-        total += score * weights[key];
-        weightSum += weights[key];
-      }
+      total += parts[key] * weights[key];
+      weightSum += weights[key];
     }
     total = weightSum > 0 ? round(total / weightSum, 2) : 0;
 

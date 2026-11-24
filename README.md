@@ -60,14 +60,14 @@ A local PostgreSQL installation also works.
 |-------------------------------------------|:-----:|:----------------------:|:-------------------:|
 | Users, departments, rooms, terms          | yes   |                        |                     |
 | Matching weights                          | yes   |                        |                     |
-| Skills and fields of study lists          | yes   | yes                    |                     |
+| Fields of study list                      | yes   | yes                    |                     |
 | Subjects and teaching requirements        | yes   | yes                    |                     |
 | Sections                                  | yes   | yes                    |                     |
 | Verify degrees and certifications         | yes   | yes                    |                     |
 | Employment details and maximum load       | yes   | yes                    |                     |
 | Class offerings, matching, assignment     | yes   | yes                    |                     |
 | Scheduling and conflict report            | yes   | yes                    |                     |
-| Edit profile: degrees, skills, certifications, history, availability | yes | yes | yes |
+| Edit profile: degrees, certifications, history, availability | yes | yes | yes |
 | View weekly schedule                      | all   | all                    | own                 |
 
 Access is checked on the server by **every page and every server action**
@@ -77,25 +77,24 @@ Server actions are public endpoints, so each one checks the user again.
 ## Typical workflow
 
 1. **Admin**: add departments, rooms, the term, and user accounts.
-2. **Faculty**: fill in the profile (degrees, skills, certifications, subjects taught, availability).
+2. **Faculty**: fill in the profile (degrees, certifications, subjects taught, availability).
 3. **Chair**: verify the degrees and certifications, and set each subject's requirements
-   (minimum degree, accepted degree fields, required skills).
+   (minimum degree, accepted degree fields).
 4. **Chair**: under Class Offerings, offer subjects to sections, then click **Match faculty**
    (or **Auto-assign**) to assign by qualification.
 5. **Chair**: click **Schedule** to set meetings. The system blocks conflicts and suggests free slots.
 
 ## How faculty matching works (`lib/matching.ts`)
 
-Each faculty member gets four scores from 0 to 100 for a subject:
+Each faculty member gets three scores from 0 to 100 for a subject:
 
 | Part        | How it is computed                                                                   | Default weight |
 |-------------|---------------------------------------------------------------------------------------|:--------------:|
 | Degree      | Best verified degree in an accepted field: bachelor's 70, master's 85, doctorate 100 | 40 |
-| Skills      | Average proficiency (1 to 5) across the subject's required skills                    | 30 |
-| Credentials | Verified certifications that prove a required skill: one = 70, two or more = 100     | 15 |
+| Credentials | Verified certifications, licenses, trainings: one = 70, two or more = 100            | 15 |
 | Experience  | Terms the subject was taught (up to 4) 70%, years of teaching (up to 10) 30%         | 15 |
 
-Match score = weighted average of the parts. Weights are editable under Matching Settings.
+Match score = weighted average of the parts. Weights are editable under Settings.
 
 A faculty member is **not eligible**, whatever the score, when:
 

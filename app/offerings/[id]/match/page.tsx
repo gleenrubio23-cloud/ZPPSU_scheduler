@@ -12,7 +12,7 @@ import { assignFaculty } from '@/actions/offerings';
 
 export const metadata: Metadata = { title: 'Match Faculty' };
 
-const PART_LABELS = { degree: 'Degree', skills: 'Skills', cert: 'Certs', experience: 'Experience' } as const;
+const PART_LABELS = { degree: 'Degree', cert: 'Certs', experience: 'Experience' } as const;
 
 export default async function MatchPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireRole('admin', 'chair');
@@ -20,11 +20,10 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   if (!o) redirect('/offerings');
   if (!canManageDept(user, o.department_id)) redirect('/denied');
 
-  const [candidates, weights, fields, skills] = await Promise.all([
+  const [candidates, weights, fields] = await Promise.all([
     rankCandidates(o),
     matchingWeights(),
     db.rows<{ name: string }>(sql`SELECT f.name FROM subject_fields sf JOIN fields f ON f.id = sf.field_id WHERE sf.subject_id = ${o.subject_id} ORDER BY f.name`),
-    db.rows<{ name: string }>(sql`SELECT k.name FROM subject_skills ss JOIN skills k ON k.id = ss.skill_id WHERE ss.subject_id = ${o.subject_id} ORDER BY k.name`),
   ]);
 
   return (
@@ -39,10 +38,9 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         <div className="form-row">
           <div><label>Minimum degree</label>{LEVELS[o.min_degree_level]}</div>
           <div><label>Accepted degree fields</label>{fields.length ? fields.map((f) => f.name).join(', ') : 'Any field'}</div>
-          <div><label>Required skills</label>{skills.length ? skills.map((s) => s.name).join(', ') : 'None listed'}</div>
           <div><label>Units</label>{num(o.units)}</div>
         </div>
-        <p className="muted">Score weights: degree {num(weights.degree)}, skills {num(weights.skills)},
+        <p className="muted">Score weights: degree {num(weights.degree)},
           certifications {num(weights.cert)}, experience {num(weights.experience)}.
           Only verified degrees and certifications are counted.</p>
         {o.faculty_id && (
@@ -70,8 +68,8 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                     const score = c.parts[key];
                     return (
                       <div key={key}>
-                        <div className="muted">{PART_LABELS[key]}: {score === null ? 'n/a' : num(score)}</div>
-                        {score !== null && <Bar percent={score} />}
+                        <div className="muted">{PART_LABELS[key]}: {num(score)}</div>
+                        <Bar percent={score} />
                       </div>
                     );
                   })}

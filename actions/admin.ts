@@ -104,7 +104,7 @@ export async function saveTerm(form: FormData): Promise<void> {
 // ---------- Matching weights ----------
 export async function saveWeights(form: FormData): Promise<void> {
   await requireRole('admin');
-  const keys = ['degree', 'skills', 'cert', 'experience'];
+  const keys = ['degree', 'cert', 'experience'];
   const values = keys.map((k) => clamp(float(form, `w_${k}`), 0, 100));
   if (values.reduce((a, b) => a + b, 0) <= 0) {
     await flash('At least one weight must be greater than zero.', 'error');

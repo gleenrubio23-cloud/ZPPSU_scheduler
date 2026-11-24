@@ -16,21 +16,17 @@ export default async function SubjectsPage({ searchParams }: { searchParams: Pro
   let edit = editId ? await db.row(sql`SELECT * FROM subjects WHERE id = ${editId}`) : null;
   if (edit && !canManageDept(user, edit.department_id)) edit = null;
 
-  const [editFields, editSkills, allFields, allSkills, departments, subjects] = await Promise.all([
+  const [editFields, allFields, departments, subjects] = await Promise.all([
     edit ? db.rows<{ field_id: number }>(sql`SELECT field_id FROM subject_fields WHERE subject_id = ${edit.id}`) : Promise.resolve([]),
-    edit ? db.rows<{ skill_id: number }>(sql`SELECT skill_id FROM subject_skills WHERE subject_id = ${edit.id}`) : Promise.resolve([]),
     db.pairs(sql`SELECT id, name FROM fields ORDER BY name`),
-    db.pairs(sql`SELECT id, name FROM skills ORDER BY name`),
     db.pairs(sql`SELECT id, code FROM departments ORDER BY code`),
     db.rows(sql`
       SELECT s.*, d.code AS dept,
-             (SELECT string_agg(f.name, ', ' ORDER BY f.name) FROM subject_fields sf JOIN fields f ON f.id = sf.field_id WHERE sf.subject_id = s.id) AS fields,
-             (SELECT string_agg(k.name, ', ' ORDER BY k.name) FROM subject_skills ss JOIN skills k ON k.id = ss.skill_id WHERE ss.subject_id = s.id) AS skills
+             (SELECT string_agg(f.name, ', ' ORDER BY f.name) FROM subject_fields sf JOIN fields f ON f.id = sf.field_id WHERE sf.subject_id = s.id) AS fields
       FROM subjects s JOIN departments d ON d.id = s.department_id
       ${dept ? sql`WHERE s.department_id = ${dept}` : raw('')} ORDER BY s.code`),
   ]);
   const fieldSet = new Set(editFields.map((r) => r.field_id));
-  const skillSet = new Set(editSkills.map((r) => r.skill_id));
 
   return (
     <Shell user={user} active="/subjects">
@@ -60,12 +56,6 @@ export default async function SubjectsPage({ searchParams }: { searchParams: Pro
               <label key={id}><input type="checkbox" name="fields" value={id} defaultChecked={fieldSet.has(Number(id))} /> {name}</label>
             ))}
           </div>
-          <h3>Required skills</h3>
-          <div className="checks">
-            {allSkills.map(([id, name]) => (
-              <label key={id}><input type="checkbox" name="skills" value={id} defaultChecked={skillSet.has(Number(id))} /> {name}</label>
-            ))}
-          </div>
           <p style={{ marginTop: 14 }}>
             <button type="submit">Save subject</button>{' '}
             {edit && <a className="btn ghost" href="/subjects">Cancel</a>}
@@ -76,14 +66,14 @@ export default async function SubjectsPage({ searchParams }: { searchParams: Pro
       <div className="card table-wrap">
         <table>
           <thead><tr><th>Subject</th><th>Dept</th><th className="num">Units</th><th className="num">Hrs/wk</th><th>Room</th>
-            <th>Minimum degree</th><th>Accepted fields</th><th>Required skills</th><th /></tr></thead>
+            <th>Minimum degree</th><th>Accepted fields</th><th /></tr></thead>
           <tbody>
             {subjects.map((s) => (
               <tr key={s.id}>
                 <td><strong>{s.code}</strong><br />{s.title}</td><td>{s.dept}</td>
                 <td className="num">{num(s.units)}</td><td className="num">{num(s.hours_per_week)}</td>
                 <td>{ROOM_TYPES[s.room_type]}</td><td>{LEVELS[s.min_degree_level]}</td>
-                <td>{s.fields || 'Any'}</td><td>{s.skills || 'None'}</td>
+                <td>{s.fields || 'Any'}</td>
                 <td><div className="actions">
                   <a className="btn small ghost" href={`/subjects?edit=${s.id}`}>Edit</a>
                   <ActionButton action={saveSubject} fields={{ action: 'delete', id: s.id }} label="Delete" className="small danger" confirm="Delete this subject?" />

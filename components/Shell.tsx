@@ -20,7 +20,7 @@ function menuFor(user: User): [string, string][] {
     menu.push(['/users', 'Users'], ['/departments', 'Departments'], ['/rooms', 'Rooms'], ['/terms', 'Terms'],
       ['/settings', 'Settings']);
   }
-  if (isStaff) menu.push(['/lookups', 'Skills and Fields']);
+  if (isStaff) menu.push(['/lookups', 'Fields of Study']);
   menu.push(['/account', 'My Account']);
   return menu;
 }

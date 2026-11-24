@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import Shell from '@/components/Shell';
-import { ActionButton, Badge, Bar, Opts } from '@/components/ui';
+import { ActionButton, Badge, Opts } from '@/components/ui';
 import { canManageDept, requireUser } from '@/lib/auth';
 import { activeTerm } from '@/lib/conflict';
-import { DAYS, LEVELS, PROFICIENCY } from '@/lib/constants';
+import { DAYS, LEVELS } from '@/lib/constants';
 import { db, sql, type Row } from '@/lib/db';
 import { fmtTime, num } from '@/lib/format';
 import { facultyLoad } from '@/lib/matching';
@@ -27,18 +27,15 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
   await db.exec(sql`INSERT INTO faculty_profiles (user_id) VALUES (${id}) ON CONFLICT DO NOTHING`);
   const term = await activeTerm();
-  const [p, degrees, skills, certs, taught, avail, allSkills, allFields, allSubjects, load] = await Promise.all([
+  const [p, degrees, certs, taught, avail, allFields, allSubjects, load] = await Promise.all([
     db.row(sql`SELECT * FROM faculty_profiles WHERE user_id = ${id}`),
     db.rows(sql`SELECT d.*, fl.name AS field FROM faculty_degrees d JOIN fields fl ON fl.id = d.field_id
                 WHERE d.faculty_id = ${id} ORDER BY array_position(ARRAY['doctorate', 'master', 'bachelor']::varchar[], d.level)`),
-    db.rows(sql`SELECT k.id, k.name, fs.proficiency FROM faculty_skills fs JOIN skills k ON k.id = fs.skill_id
-                WHERE fs.faculty_id = ${id} ORDER BY fs.proficiency DESC, k.name`),
-    db.rows(sql`SELECT c.*, k.name AS skill FROM faculty_certifications c LEFT JOIN skills k ON k.id = c.skill_id
+    db.rows(sql`SELECT c.* FROM faculty_certifications c
                 WHERE c.faculty_id = ${id} ORDER BY c.year_obtained DESC NULLS LAST`),
     db.rows(sql`SELECT s.id, s.code, s.title, t.terms_taught FROM faculty_subjects_taught t JOIN subjects s ON s.id = t.subject_id
                 WHERE t.faculty_id = ${id} ORDER BY s.code`),
     db.rows(sql`SELECT * FROM faculty_availability WHERE faculty_id = ${id} ORDER BY day, start_time`),
-    db.pairs(sql`SELECT id, name FROM skills ORDER BY name`),
     db.pairs(sql`SELECT id, name FROM fields ORDER BY name`),
     db.pairs(sql`SELECT id, code || ' - ' || title FROM subjects ORDER BY code`),
     term ? facultyLoad(id, term.id) : Promise.resolve(0),
@@ -81,7 +78,6 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
         <div className="stat"><b>{num(load)} / {num(p.max_units)}</b><span>Units this term / maximum</span></div>
         <div className="stat"><b>{p.years_teaching}</b><span>Years of teaching</span></div>
         <div className="stat"><b>{p.industry_years}</b><span>Years of industry experience</span></div>
-        <div className="stat"><b>{skills.length}</b><span>Skills listed</span></div>
       </div>
 
       {canVerify && (
@@ -135,33 +131,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
         </form>
       </div>
 
-      <div className="two">
-        <div className="card">
-          <h2>Skills</h2>
-          <table>
-            <thead><tr><th>Skill</th><th>Proficiency</th><th /></tr></thead>
-            <tbody>
-              {skills.map((s) => (
-                <tr key={s.id}>
-                  <td>{s.name}</td>
-                  <td>{PROFICIENCY[s.proficiency] ?? s.proficiency}<Bar percent={s.proficiency * 20} /></td>
-                  <td>{remove('del_skill', s.id)}</td>
-                </tr>
-              ))}
-              {skills.length === 0 && <tr><td colSpan={3} className="muted">No skills listed yet.</td></tr>}
-            </tbody>
-          </table>
-          <h3>Add or update a skill</h3>
-          <form action={updateProfile}>
-            <Hidden action="save_skill" />
-            <div className="form-row">
-              <div><label>Skill</label><select name="skill_id" required><Opts items={allSkills} placeholder="Choose" /></select></div>
-              <div><label>Proficiency</label><select name="proficiency" defaultValue="3"><Opts items={PROFICIENCY} /></select></div>
-            </div>
-            <button type="submit">Save skill</button>
-          </form>
-        </div>
-
+      <div>
         <div className="card">
           <h2>Certifications, licenses, and trainings</h2>
           <table>
@@ -170,7 +140,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
               {certs.map((c) => (
                 <tr key={c.id}>
                   <td><strong>{c.name}</strong><br />
-                    <span className="muted">{c.issuer} {c.year_obtained}{c.skill ? ` · proves: ${c.skill}` : ''}</span></td>
+                    <span className="muted">{c.issuer} {c.year_obtained}</span></td>
                   <td><Badge kind={c.status}>{c.status.charAt(0).toUpperCase() + c.status.slice(1)}</Badge></td>
                   <td>{credentialActions('cert', c)}</td>
                 </tr>
@@ -187,7 +157,6 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
             </div>
             <div className="form-row">
               <div><label>Year obtained</label><input type="number" name="year" min={1950} max={2100} /></div>
-              <div><label>Skill it proves</label><select name="skill_id"><Opts items={allSkills} placeholder="None in particular" /></select></div>
             </div>
             <button type="submit">Add certification</button>
           </form>

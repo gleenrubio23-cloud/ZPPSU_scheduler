@@ -41,7 +41,6 @@ export async function saveSubject(form: FormData): Promise<void> {
   const units = clamp(float(form, 'units'), 0.5, 12);
   const hours = clamp(float(form, 'hours_per_week'), 0.5, 20);
   const fieldIds = [...new Set(form.getAll('fields').map((v) => Number(v)).filter(Number.isInteger))];
-  const skillIds = [...new Set(form.getAll('skills').map((v) => Number(v)).filter(Number.isInteger))];
 
   await transaction(async (tx) => {
     if (existing) {
@@ -53,9 +52,7 @@ export async function saveSubject(form: FormData): Promise<void> {
     }
     // Replace the requirement lists with what was ticked on the form.
     await tx.exec(sql`DELETE FROM subject_fields WHERE subject_id = ${id}`);
-    await tx.exec(sql`DELETE FROM subject_skills WHERE subject_id = ${id}`);
     await tx.exec(sql`INSERT INTO subject_fields (subject_id, field_id) SELECT ${id}, id FROM fields WHERE id = ANY(${fieldIds})`);
-    await tx.exec(sql`INSERT INTO subject_skills (subject_id, skill_id) SELECT ${id}, id FROM skills WHERE id = ANY(${skillIds})`);
   });
   await flash('Subject and its requirements saved.');
   redirect('/subjects');
