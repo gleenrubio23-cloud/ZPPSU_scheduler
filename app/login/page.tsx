@@ -19,6 +19,7 @@ export default async function LoginPage() {
         </div>
         <p className="muted">Sign in with your account.</p>
         <LoginForm />
+        <footer>Design and Developed by Gleen M. Rubio | Jhonmar A. Abaton | Anabella M. Galvez copyright &copy; 2024. All rights reserved.</footer>
       </div>
     </main>
   );
