@@ -148,3 +148,25 @@ select[multiple] { min-height: 130px; }
 button.linkish { background: none; border: 0; padding: 0; margin-left: 10px; color: var(--gold); text-decoration: underline; font-size: inherit; cursor: pointer; }
 button.linkish:hover { background: none; color: #fff; }
 button:disabled { opacity: .6; cursor: wait; }
+
+/* ---------- Whole-week overview (admin and chair) ---------- */
+.print-only { display: none; }
+.overview-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; }
+.overview-stats div { background: #f8fafc; border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
+.overview-stats b { display: block; font-size: 1.3rem; color: var(--brand); }
+.overview-stats span { font-size: .8rem; color: var(--muted); }
+.timetable.overview td { vertical-align: top; padding: 3px; height: auto; }
+.timetable.overview td.time { vertical-align: top; }
+.ov-class { background: #fbf0d0; border: 1px solid #e3c86a; border-radius: 4px; padding: 3px 5px; margin-bottom: 3px; line-height: 1.25; }
+.ov-class small { color: var(--muted); }
+@media print {
+  @page wide { size: 13in 8.5in; margin: 0.4in; }
+  .overview-print { page: wide; }
+  .print-only { display: block; }
+  .overview-print .card { border: 0; padding: 0; margin-bottom: 12px; }
+  .overview-print .table-wrap { overflow: visible; }
+  .timetable.overview { min-width: 0; }
+  .timetable.overview td, .timetable.overview th { font-size: 7pt; border-color: #000; }
+  .timetable.overview tr, .ov-class { break-inside: avoid; }
+  .ov-class { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

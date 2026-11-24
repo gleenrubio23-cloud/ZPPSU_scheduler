@@ -98,6 +98,7 @@ export default async function TimetablePage({ searchParams }: { searchParams: Pr
       <div className="head no-print">
         <h1>{isFaculty ? 'My Schedule' : 'Timetables'}, {termLabel(term)}</h1>
         <div>
+          {!isFaculty && <a href="/timetable/overview" className="btn" style={{ marginRight: 8 }}>Whole-week overview</a>}
           {user.role === 'admin' && <a href="/settings#signatories" className="btn ghost" style={{ marginRight: 8 }}>Edit signatories</a>}
           <PrintButton />
         </div>
