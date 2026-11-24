@@ -104,6 +104,31 @@ h3 {
   font-size: 1.15rem;
 }
 
+.login-card {
+  padding: 24px 26px;
+  box-shadow: 0 4px 18px #0000000f;
+}
+
+.login-card input {
+  width: 100%;
+}
+
+.login-card button[type="submit"] {
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px;
+}
+
+.login-foot {
+  border-top: 1px solid var(--line);
+  text-align: center;
+  color: var(--muted);
+  margin-top: 20px;
+  padding-top: 12px;
+  font-size: .75rem;
+  line-height: 1.5;
+}
+
 .topbar .who {
   white-space: nowrap;
   font-size: .85rem;
@@ -682,6 +707,100 @@ button.linkish:hover {
 button:disabled {
   opacity: .6;
   cursor: wait;
+}
+
+.print-only {
+  display: none;
+}
+
+.overview-stats {
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px;
+  display: grid;
+}
+
+.overview-stats div {
+  border: 1px solid var(--line);
+  background: #f8fafc;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.overview-stats b {
+  color: var(--brand);
+  font-size: 1.3rem;
+  display: block;
+}
+
+.overview-stats span {
+  color: var(--muted);
+  font-size: .8rem;
+}
+
+.timetable.overview td {
+  vertical-align: top;
+  height: auto;
+  padding: 3px;
+}
+
+.timetable.overview td.time {
+  vertical-align: top;
+}
+
+.ov-class {
+  background: #fbf0d0;
+  border: 1px solid #e3c86a;
+  border-radius: 4px;
+  margin-bottom: 3px;
+  padding: 3px 5px;
+  line-height: 1.25;
+}
+
+.ov-class small {
+  color: var(--muted);
+}
+
+@media print {
+  @page wide {
+    size: 13in 8.5in;
+    margin: .4in;
+  }
+
+  .overview-print {
+    page: wide;
+  }
+
+  .print-only {
+    display: block;
+  }
+
+  .overview-print .card {
+    border: 0;
+    margin-bottom: 12px;
+    padding: 0;
+  }
+
+  .overview-print .table-wrap {
+    overflow: visible;
+  }
+
+  .timetable.overview {
+    min-width: 0;
+  }
+
+  .timetable.overview td, .timetable.overview th {
+    border-color: #000;
+    font-size: 7pt;
+  }
+
+  .timetable.overview tr, .ov-class {
+    break-inside: avoid;
+  }
+
+  .ov-class {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
 
 /*# sourceMappingURL=app_globals_0yg4wg8plh8sv.css.map*/

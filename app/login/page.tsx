@@ -10,7 +10,7 @@ export default async function LoginPage() {
   if (await currentUser()) redirect('/dashboard');
   return (
     <main className="content plain">
-      <div className="card">
+      <div className="card login-card">
         <div className="login-head">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.jpg" alt={`${SCHOOL_NAME} seal`} />
@@ -19,7 +19,10 @@ export default async function LoginPage() {
         </div>
         <p className="muted">Sign in with your account.</p>
         <LoginForm />
-        <footer>Design and Developed by Gleen M. Rubio | Jhonmar A. Abaton | Anabella M. Galvez copyright &copy; 2024. All rights reserved.</footer>
+        <footer className="login-foot">
+          Designed and developed by<br />Gleen M. Rubio · Jhonmar A. Abaton · Anabella M. Galvez<br />
+          &copy; 2024. All rights reserved.
+        </footer>
       </div>
     </main>
   );
