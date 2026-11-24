@@ -3,7 +3,9 @@ import Shell from '@/components/Shell';
 import { requireRole } from '@/lib/auth';
 import { num } from '@/lib/format';
 import { matchingWeights, type Weights } from '@/lib/matching';
-import { savePrintSettings, saveWeights } from '@/actions/admin';
+import { savePrintSettings, saveSectionLimit, saveWeights } from '@/actions/admin';
+import { db, sql } from '@/lib/db';
+import { SECTION_LIMIT_CEILING, sectionLimit } from '@/lib/limits';
 import { printSettings, SIGNERS } from '@/lib/printSettings';
 
 export const metadata: Metadata = { title: 'Settings' };
@@ -19,6 +21,8 @@ export default async function SettingsPage() {
   const user = await requireRole('admin');
   const weights = await matchingWeights();
   const print = await printSettings();
+  const limit = await sectionLimit();
+  const over = await db.val<number>(sql`SELECT COUNT(*) FROM sections WHERE size > ${limit}`) ?? 0;
   const total = Object.values(weights).reduce((a, b) => a + b, 0);
   return (
     <Shell user={user} active="/settings">
@@ -41,6 +45,21 @@ export default async function SettingsPage() {
             </tbody>
           </table>
           <p style={{ marginTop: 14 }}><button type="submit">Save weights</button></p>
+        </form>
+      </div>
+
+      <div className="card" style={{ maxWidth: 640 }}>
+        <h2 id="section-limit">Class Offerings</h2>
+        <p className="muted">The most students a section, and each class offered to it, may have. Sections and class
+          offerings above this number cannot be saved.</p>
+        <form action={saveSectionLimit}>
+          <div className="form-row">
+            <div><label>Maximum students per section</label>
+              <input type="number" name="max_section_size" min={1} max={SECTION_LIMIT_CEILING} step={1} required defaultValue={limit} /></div>
+          </div>
+          {over > 0 && <div className="alert warning">{over} existing section{over === 1 ? ' is' : 's are'} already above this limit.
+            They stay as they are, but must be reduced before they can be edited again.</div>}
+          <button type="submit">Save limit</button>
         </form>
       </div>
 

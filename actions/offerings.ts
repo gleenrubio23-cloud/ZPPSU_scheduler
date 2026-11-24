@@ -8,6 +8,7 @@ import {
 } from '@/lib/conflict';
 import { db, raw, sql, transaction } from '@/lib/db';
 import { clamp, dayTime, int, str } from '@/lib/format';
+import { sectionLimit } from '@/lib/limits';
 import { levelRank, rankCandidates } from '@/lib/matching';
 
 /** Load the offering named in the form and check the user may manage it. */
@@ -33,6 +34,11 @@ export async function addOffering(form: FormData): Promise<void> {
   } else {
     // Enrolled students default to the section size when the box is left empty.
     const enrolled = str(form, 'enrolled') ? clamp(int(form, 'enrolled'), 1, 1000) : section.size;
+    const limit = await sectionLimit();
+    if (enrolled > limit) {
+      await flash(`Not added: ${enrolled} students is above the section size limit of ${limit}.`, 'error');
+      redirect('/offerings');
+    }
     await db.exec(sql`INSERT INTO offerings (term_id, subject_id, section_id, enrolled)
                       VALUES (${term.id}, ${subject.id}, ${section.id}, ${enrolled})`);
     await flash('Class offering added. Next, match a faculty member and set the schedule.');
@@ -112,8 +118,11 @@ export async function setEnrolled(form: FormData): Promise<void> {
   // Changing the head count must not leave the class in a room that is now too small.
   const tooSmall = await db.row(sql`SELECT r.name, r.capacity FROM schedules s JOIN rooms r ON r.id = s.room_id
                                     WHERE s.offering_id = ${o.id} AND r.capacity < ${count} ORDER BY r.capacity LIMIT 1`);
+  const limit = await sectionLimit();
   if (count < 1 || count > 1000) {
     await flash('Enter the number of enrolled students (1 to 1000).', 'error');
+  } else if (count > limit) {
+    await flash(`Not saved: ${count} students is above the section size limit of ${limit}.`, 'error');
   } else if (tooSmall) {
     await flash(`Not saved: ${tooSmall.name} seats only ${tooSmall.capacity}. Move the class to a bigger room first, then set ${count} students.`, 'error');
   } else {

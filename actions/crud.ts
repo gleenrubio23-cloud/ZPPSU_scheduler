@@ -45,6 +45,11 @@ export async function saveCrud(form: FormData): Promise<void> {
             break;
           }
           v = String(Math.round(n));
+          const max = field.max ? await field.max() : null;
+          if (max != null && Number(v) > max) {
+            error = `${field.label} cannot be more than ${max} (the limit set by the administrator).`;
+            break;
+          }
         }
         values[col] = v === '' ? null : v;
       }

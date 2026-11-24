@@ -7,6 +7,7 @@ import { activeTerm } from '@/lib/conflict';
 import { DAYS } from '@/lib/constants';
 import { db, raw, sql } from '@/lib/db';
 import { fmtTime, num, termLabel } from '@/lib/format';
+import { sectionLimit } from '@/lib/limits';
 import { addOffering, autoAssign, deleteOffering } from '@/actions/offerings';
 
 export const metadata: Metadata = { title: 'Class Offerings' };
@@ -15,6 +16,7 @@ export default async function OfferingsPage() {
   const user = await requireRole('admin', 'chair');
   const dept = deptScope(user);
   const term = await activeTerm();
+  const limit = await sectionLimit();
   const termId = term?.id ?? 0;
   const subjDept = dept ? sql`AND sub.department_id = ${dept}` : raw('');
 
@@ -65,7 +67,7 @@ export default async function OfferingsPage() {
               <div className="form-row">
                 <div><label>Subject</label><select name="subject_id" required defaultValue=""><Opts items={subjectOptions} placeholder="Choose" /></select></div>
                 <div><label>Section</label><select name="section_id" required defaultValue=""><Opts items={sectionOptions} placeholder="Choose" /></select></div>
-                <div><label>Students enrolled (blank = section size)</label><input type="number" name="enrolled" min={1} max={1000} /></div>
+                <div><label>Students enrolled (blank = section size, max {limit})</label><input type="number" name="enrolled" min={1} max={limit} /></div>
               </div>
               <button type="submit">Add offering</button>
             </form>

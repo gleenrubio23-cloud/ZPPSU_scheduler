@@ -7,6 +7,7 @@ import { loadOffering, suggestSlots, type Room } from '@/lib/conflict';
 import { DAYS } from '@/lib/constants';
 import { db, sql } from '@/lib/db';
 import { clamp, fmtTime, hhmm, minutes, num, param } from '@/lib/format';
+import { sectionLimit } from '@/lib/limits';
 import { addMeeting, deleteMeeting, setEnrolled } from '@/actions/offerings';
 
 export const metadata: Metadata = { title: 'Schedule' };
@@ -19,6 +20,7 @@ export default async function SchedulePage({
   if (!o) redirect('/offerings');
   if (!canManageDept(user, o.department_id)) redirect('/denied');
   const sp = await searchParams;
+  const limit = await sectionLimit();
 
   const meetings = await db.rows(sql`
     SELECT s.*, r.name AS room_name FROM schedules s JOIN rooms r ON r.id = s.room_id
@@ -52,10 +54,10 @@ export default async function SchedulePage({
           <div><label>Faculty</label>{o.faculty_id ? o.faculty_name : (
             <><Badge kind="warn">Unassigned</Badge> <a href={`/offerings/${o.id}/match`}>Match faculty</a></>)}</div>
           <div>
-            <label>Students enrolled (section has {o.section_size})</label>
+            <label>Students enrolled (section has {o.section_size}, max {limit})</label>
             <form action={setEnrolled} className="actions">
               <input type="hidden" name="offering_id" value={o.id} />
-              <input type="number" name="enrolled" min={1} max={1000} required defaultValue={o.enrolled} style={{ width: 90 }} />
+              <input type="number" name="enrolled" min={1} max={limit} required defaultValue={o.enrolled} style={{ width: 90 }} />
               <button className="small ghost">Update</button>
             </form>
           </div>

@@ -18,6 +18,8 @@ export default async function CrudSection({
   for (const [col, f] of Object.entries(def.fields)) {
     if (f.type === 'select') options[col] = await resolveOptions(f);
   }
+  const maxes: Record<string, number> = {};
+  for (const [col, f] of Object.entries(def.fields)) if (f.max) maxes[col] = await f.max();
   const shown = Object.entries(def.fields);
   const formFields = shown.filter(([col]) => !(col in scope));
   const display = (col: string, value: unknown) => {
@@ -38,14 +40,14 @@ export default async function CrudSection({
               const value = String(edit?.[col] ?? f.default ?? '');
               return (
                 <div key={col}>
-                  <label>{f.label}</label>
+                  <label>{f.label}{col in maxes && ` (max ${maxes[col]})`}</label>
                   {f.type === 'select' ? (
                     <select name={col} required={f.required} defaultValue={value}>
                       <Opts items={options[col]} placeholder={f.required ? undefined : 'None'} />
                     </select>
                   ) : (
                     <input type={f.type ?? 'text'} name={col} defaultValue={value} required={f.required}
-                      {...(f.type === 'number' ? { min: 0, step: 'any' } : {})} />
+                      {...(f.type === 'number' ? { min: 0, step: 'any', max: maxes[col] } : {})} />
                   )}
                 </div>
               );

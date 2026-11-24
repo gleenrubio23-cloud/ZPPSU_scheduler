@@ -5,12 +5,15 @@
 import { db, sql } from './db';
 import type { Role } from './constants';
 import { ROOM_TYPES } from './constants';
+import { sectionLimit } from './limits';
 
 export type FieldDef = {
   label: string;
   type?: 'text' | 'number' | 'select';
   required?: boolean;
   default?: string | number;
+  /** Highest allowed number (number fields), read when the form is shown and when it is saved. */
+  max?: () => Promise<number>;
   /** Choices for a select: fixed pairs, or a query run when needed. */
   options?: Record<string, string> | (() => Promise<[number | string, string][]>);
 };
@@ -52,7 +55,7 @@ export const CRUD: Record<string, CrudDef> = {
       name: { label: 'Section name', required: true },
       program: { label: 'Program', required: true },
       year_level: { label: 'Year level', type: 'number', required: true, default: 1 },
-      size: { label: 'Number of students', type: 'number', required: true, default: 40 },
+      size: { label: 'Number of students', type: 'number', required: true, default: 40, max: sectionLimit },
       department_id: { label: 'Department', type: 'select', required: true, options: departmentOptions },
     },
   },

@@ -6,6 +6,7 @@ import { flash, requireRole } from '@/lib/auth';
 import { ROLES, SEMESTERS, type Role } from '@/lib/constants';
 import { db, isConstraintError, sql, transaction } from '@/lib/db';
 import { clamp, float, int, str } from '@/lib/format';
+import { SECTION_LIMIT_CEILING, SECTION_LIMIT_KEY } from '@/lib/limits';
 import { PRINT_KEYS } from '@/lib/printSettings';
 
 // ---------- Users ----------
@@ -115,6 +116,20 @@ export async function saveWeights(form: FormData): Promise<void> {
     await flash('Matching weights saved.');
   }
   redirect('/settings');
+}
+
+// ---------- Class offerings: section size limit ----------
+export async function saveSectionLimit(form: FormData): Promise<void> {
+  await requireRole('admin');
+  const limit = int(form, 'max_section_size');
+  if (limit < 1 || limit > SECTION_LIMIT_CEILING) {
+    await flash(`Enter a section size limit from 1 to ${SECTION_LIMIT_CEILING}.`, 'error');
+  } else {
+    await db.exec(sql`INSERT INTO settings (name, value) VALUES (${SECTION_LIMIT_KEY}, ${String(limit)})
+                      ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value`);
+    await flash(`Section size limit set to ${limit} students.`);
+  }
+  redirect('/settings#section-limit');
 }
 
 // ---------- Printed timetable ----------
