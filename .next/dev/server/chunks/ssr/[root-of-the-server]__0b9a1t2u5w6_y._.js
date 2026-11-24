@@ -121,7 +121,9 @@ async function LoginPage() {
                             lineNumber: 23,
                             columnNumber: 97
                         }, this),
-                        "© 2024. All rights reserved."
+                        "© ",
+                        new Date().getFullYear(),
+                        ". All rights reserved."
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/login/page.tsx",

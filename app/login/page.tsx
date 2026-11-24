@@ -21,7 +21,7 @@ export default async function LoginPage() {
         <LoginForm />
         <footer className="login-foot">
           Designed and developed by<br />Gleen M. Rubio · Jhonmar A. Abaton · Anabella M. Galvez<br />
-          &copy; 2024. All rights reserved.
+          &copy; {new Date().getFullYear()}. All rights reserved.
         </footer>
       </div>
     </main>
