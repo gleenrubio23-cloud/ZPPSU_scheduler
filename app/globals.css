@@ -101,8 +101,47 @@ select[multiple] { min-height: 130px; }
   .content { margin-left: 0; padding: 14px; }
 }
 @media print {
-  .topbar, .sidebar, .no-print { display: none !important; }
-  .content { margin: 0; padding: 0; }
+  .topbar, .sidebar, .no-print, .alert { display: none !important; }
+  .content { margin: 0; padding: 0; max-width: none; }
+}
+
+/* ---------- Printed timetable (Faculty Teaching Load form) ---------- */
+.print-sheet { display: none; }
+@media print {
+  @page { size: 8.5in 13in; margin: 0.45in 0.7in 0.4in; }   /* long bond / folio, like the paper form */
+  body { background: #fff; color: #000; }
+  .print-sheet { display: block; font: 11pt/1.25 Arial, Helvetica, sans-serif; color: #000;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .print-sheet table { width: 100%; border-collapse: collapse; }
+  .print-sheet th, .print-sheet td { border: 0; padding: 0; background: none; text-transform: none; letter-spacing: 0;
+    color: #000; font-size: inherit; white-space: normal; }
+
+  .ftl-letterhead { display: flex; align-items: center; justify-content: center; gap: 14px;
+    padding-bottom: 6px; border-bottom: 1.5px solid #000; text-align: center; font-size: 9.5pt; line-height: 1.2; }
+  .ftl-letterhead img { width: 0.8in; height: 0.8in; object-fit: contain; }
+  .ftl-letterhead .serif { font-family: "Times New Roman", Georgia, serif; font-size: 10.5pt; }
+  .ftl-title { text-align: center; font-size: 12pt; font-weight: 700; margin: 14px 0 12px; }
+
+  .ftl-details td { padding: 0 0 1px; vertical-align: top; }
+  .ftl-details td:last-child { width: 33%; }
+  .ftl-courses { margin: 2px 0 6px; }
+
+  .ftl-grid { table-layout: fixed; font-family: "Arial Narrow", "Roboto Condensed", Arial, sans-serif; font-size: 8pt; }
+  .ftl-grid col.t { width: 13%; }
+  .ftl-grid th, .ftl-grid td { border: 0.75px solid #000; height: 0.26in; padding: 1px 3px; vertical-align: middle; }
+  .ftl-grid th { text-align: center; font-weight: 400; font-size: 8.5pt; }
+  .ftl-grid td.t { font-size: 8pt; }
+  .ftl-grid td.cls { text-align: center; line-height: 1.15; padding: 2px 3px; }
+  .ftl-grid td.cls b, .ftl-grid td.cls span { display: block; }
+  .ftl-grid td.cls span { margin-bottom: 5px; }
+  .ftl-grid td.noon { text-align: center; font-weight: 700; letter-spacing: 0.7em; }
+  .ftl-grid tr { break-inside: avoid; }
+
+  .ftl-signs { display: grid; grid-template-columns: 1fr 1fr; column-gap: 0.4in; row-gap: 0.3in; margin-top: 0.45in;
+    break-inside: avoid; font-size: 10.5pt; }
+  .ftl-signs p { margin: 0 0 0.3in; }
+  .ftl-signs b { display: block; text-decoration: underline; }
+  .ftl-signs span { display: block; }
 }
 
 /* Next.js version additions */

@@ -1,11 +1,12 @@
 'use server';
-/** Administrator actions: user accounts, academic terms, and matching weights. */
+/** Administrator actions: user accounts, academic terms, matching weights, and print settings. */
 import bcrypt from 'bcryptjs';
 import { redirect } from 'next/navigation';
 import { flash, requireRole } from '@/lib/auth';
 import { ROLES, SEMESTERS, type Role } from '@/lib/constants';
 import { db, isConstraintError, sql, transaction } from '@/lib/db';
 import { clamp, float, int, str } from '@/lib/format';
+import { PRINT_KEYS } from '@/lib/printSettings';
 
 // ---------- Users ----------
 export async function saveUser(form: FormData): Promise<void> {
@@ -113,5 +114,17 @@ export async function saveWeights(form: FormData): Promise<void> {
     }
     await flash('Matching weights saved.');
   }
+  redirect('/settings');
+}
+
+// ---------- Printed timetable ----------
+export async function savePrintSettings(form: FormData): Promise<void> {
+  await requireRole('admin');
+  for (const key of PRINT_KEYS) {
+    const value = str(form, key).slice(0, 255);
+    await db.exec(sql`INSERT INTO settings (name, value) VALUES (${key}, ${value})
+                      ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value`);
+  }
+  await flash('Print settings saved.');
   redirect('/settings');
 }

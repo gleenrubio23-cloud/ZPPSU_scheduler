@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import Shell from '@/components/Shell';
 import PrintButton from '@/components/PrintButton';
+import PrintSheet, { type PrintMeeting } from '@/components/PrintSheet';
 import { Opts } from '@/components/ui';
 import { requireUser } from '@/lib/auth';
 import { activeTerm } from '@/lib/conflict';
 import { DAYS, DAY_END, DAY_START } from '@/lib/constants';
 import { db, raw, sql } from '@/lib/db';
-import { fmtTime, fromMinutes, minutes, param, termLabel } from '@/lib/format';
+import { fmtTime, fromMinutes, minutes, num, param, termLabel } from '@/lib/format';
+import { printSettings } from '@/lib/printSettings';
 
 export const metadata: Metadata = { title: 'Timetables' };
 
@@ -43,6 +45,38 @@ export default async function TimetablePage({ searchParams }: { searchParams: Pr
     WHERE o.term_id = ${term?.id ?? 0} AND ${raw(column)} = ${id}
     ORDER BY s.day, s.start_time`);
 
+  // ---------- Details for the printed form ----------
+  const settings = await printSettings();
+  const termId = term?.id ?? 0;
+  const hours = meetings.reduce((t, m) => t + (minutes(m.end_time) - minutes(m.start_time)) / 60, 0);
+  const semester = term?.semester ?? '';
+  const schoolYear = term?.school_year ?? '';
+  type Detail = [[string, string, boolean?], [string, string, boolean?]];
+  let printTitle = 'FACULTY TEACHING LOAD';
+  let details: Detail[];
+  if (view === 'faculty') {
+    const profile = await db.row<{ degree: string | null; academic_rank: string | null }>(sql`
+      SELECT (SELECT d.title FROM faculty_degrees d WHERE d.faculty_id = ${id} AND d.status <> 'rejected'
+              ORDER BY CASE d.level WHEN 'doctorate' THEN 3 WHEN 'master' THEN 2 ELSE 1 END DESC,
+                       (d.status = 'verified') DESC, d.year_graduated DESC NULLS LAST LIMIT 1) AS degree,
+             (SELECT p.academic_rank FROM faculty_profiles p WHERE p.user_id = ${id}) AS academic_rank`);
+    const preparations = (await db.val<number>(sql`
+      SELECT COUNT(DISTINCT subject_id) FROM offerings WHERE term_id = ${termId} AND faculty_id = ${id}`)) ?? 0;
+    details = [
+      [['Name of Faculty', label.toUpperCase()], ['Semester', semester, true]],
+      [['Degree', profile?.degree ?? ''], ['School Year', schoolYear, true]],
+      [['Academic Rank', profile?.academic_rank ?? ''], ['No. of Preparation', String(preparations)]],
+      [['Designation/s', ''], ['No. of Hours', num(hours)]],
+    ];
+  } else {
+    printTitle = view === 'room' ? 'ROOM UTILIZATION SCHEDULE' : 'CLASS SCHEDULE';
+    details = [
+      [[view === 'room' ? 'Room' : 'Section', label.toUpperCase()], ['Semester', semester, true]],
+      [['', ''], ['School Year', schoolYear, true]],
+      [['No. of Classes', String(new Set(meetings.map((m) => m.code + m.section_name)).size)], ['No. of Hours', num(hours)]],
+    ];
+  }
+
   // A grid of 30-minute rows. grid[day][slot] = meeting that starts there; covered = cells under a tall block.
   const first = minutes(DAY_START);
   const slots = (minutes(DAY_END) - first) / 30;
@@ -61,7 +95,7 @@ export default async function TimetablePage({ searchParams }: { searchParams: Pr
 
   return (
     <Shell user={user} active="/timetable">
-      <div className="head">
+      <div className="head no-print">
         <h1>{isFaculty ? 'My Schedule' : 'Timetables'}, {termLabel(term)}</h1>
         <PrintButton />
       </div>
@@ -78,7 +112,7 @@ export default async function TimetablePage({ searchParams }: { searchParams: Pr
         </form>
       )}
 
-      <div className="card">
+      <div className="card no-print">
         <h2>{label}</h2>
         <div className="table-wrap">
           <table className="timetable">
@@ -108,7 +142,7 @@ export default async function TimetablePage({ searchParams }: { searchParams: Pr
         </div>
       </div>
 
-      <div className="card table-wrap">
+      <div className="card table-wrap no-print">
         <h2>Class list</h2>
         {meetings.length === 0 ? <p className="muted">No classes scheduled.</p> : (
           <table>
@@ -124,6 +158,8 @@ export default async function TimetablePage({ searchParams }: { searchParams: Pr
           </table>
         )}
       </div>
+
+      <PrintSheet title={printTitle} view={view} details={details} meetings={meetings as PrintMeeting[]} settings={settings} />
     </Shell>
   );
 }

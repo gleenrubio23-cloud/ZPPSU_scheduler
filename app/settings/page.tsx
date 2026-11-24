@@ -3,9 +3,10 @@ import Shell from '@/components/Shell';
 import { requireRole } from '@/lib/auth';
 import { num } from '@/lib/format';
 import { matchingWeights, type Weights } from '@/lib/matching';
-import { saveWeights } from '@/actions/admin';
+import { savePrintSettings, saveWeights } from '@/actions/admin';
+import { printSettings, SIGNERS } from '@/lib/printSettings';
 
-export const metadata: Metadata = { title: 'Matching Settings' };
+export const metadata: Metadata = { title: 'Settings' };
 
 const LABELS: [keyof Weights, string, string][] = [
   ['degree', 'Degree alignment', 'Highest verified degree in a field the subject accepts'],
@@ -17,6 +18,7 @@ const LABELS: [keyof Weights, string, string][] = [
 export default async function SettingsPage() {
   const user = await requireRole('admin');
   const weights = await matchingWeights();
+  const print = await printSettings();
   const total = Object.values(weights).reduce((a, b) => a + b, 0);
   return (
     <Shell user={user} active="/settings">
@@ -38,6 +40,27 @@ export default async function SettingsPage() {
             </tbody>
           </table>
           <p style={{ marginTop: 14 }}><button type="submit">Save weights</button></p>
+        </form>
+      </div>
+
+      <div className="card" style={{ maxWidth: 640 }}>
+        <h2>Printed Timetable</h2>
+        <p className="muted">Shown on the printed Faculty Teaching Load: the campus lines under the university name,
+          and the four signatories at the bottom.</p>
+        <form action={savePrintSettings}>
+          <div className="form-row">
+            <div><label>Campus or unit</label><input type="text" name="print_unit" maxLength={255} defaultValue={print.print_unit} /></div>
+            <div><label>Address</label><input type="text" name="print_address" maxLength={255} defaultValue={print.print_address} /></div>
+          </div>
+          {SIGNERS.map(([key, label]) => (
+            <div className="form-row" key={key}>
+              <div><label>{label}: name</label>
+                <input type="text" name={`sign_${key}_name`} maxLength={255} defaultValue={print[`sign_${key}_name`]} /></div>
+              <div><label>{label}: position</label>
+                <input type="text" name={`sign_${key}_title`} maxLength={255} defaultValue={print[`sign_${key}_title`]} /></div>
+            </div>
+          ))}
+          <button type="submit">Save print settings</button>
         </form>
       </div>
     </Shell>
