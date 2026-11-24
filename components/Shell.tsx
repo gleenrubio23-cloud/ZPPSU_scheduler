@@ -18,7 +18,7 @@ function menuFor(user: User): [string, string][] {
   menu.push(['/timetable', user.role === 'faculty' ? 'My Schedule' : 'Timetables']);
   if (user.role === 'admin') {
     menu.push(['/users', 'Users'], ['/departments', 'Departments'], ['/rooms', 'Rooms'], ['/terms', 'Terms'],
-      ['/settings', 'Matching Settings']);
+      ['/settings', 'Settings']);
   }
   if (isStaff) menu.push(['/lookups', 'Skills and Fields']);
   menu.push(['/account', 'My Account']);

@@ -22,7 +22,8 @@ export default async function SettingsPage() {
   const total = Object.values(weights).reduce((a, b) => a + b, 0);
   return (
     <Shell user={user} active="/settings">
-      <h1>Matching Settings</h1>
+      <h1>Settings</h1>
+      <h2>Faculty Matching</h2>
       <div className="card" style={{ maxWidth: 640 }}>
         <p className="muted">These weights decide how much each part of a faculty profile counts when the system ranks
           faculty for a subject. They do not have to add up to 100; the system uses their proportions.</p>
@@ -44,9 +45,9 @@ export default async function SettingsPage() {
       </div>
 
       <div className="card" style={{ maxWidth: 640 }}>
-        <h2>Printed Timetable</h2>
+        <h2 id="signatories">Printed Timetable and Signatories</h2>
         <p className="muted">Shown on the printed Faculty Teaching Load: the campus lines under the university name,
-          and the four signatories at the bottom.</p>
+          and the four signatories at the bottom. Only administrators can change these.</p>
         <form action={savePrintSettings}>
           <div className="form-row">
             <div><label>Campus or unit</label><input type="text" name="print_unit" maxLength={255} defaultValue={print.print_unit} /></div>

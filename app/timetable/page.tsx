@@ -97,7 +97,10 @@ export default async function TimetablePage({ searchParams }: { searchParams: Pr
     <Shell user={user} active="/timetable">
       <div className="head no-print">
         <h1>{isFaculty ? 'My Schedule' : 'Timetables'}, {termLabel(term)}</h1>
-        <PrintButton />
+        <div>
+          {user.role === 'admin' && <a href="/settings#signatories" className="btn ghost" style={{ marginRight: 8 }}>Edit signatories</a>}
+          <PrintButton />
+        </div>
       </div>
 
       {!isFaculty && (
