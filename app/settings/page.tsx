@@ -63,13 +63,20 @@ export default async function SettingsPage() {
       </div>
 
       <div className="card" style={{ maxWidth: 640 }}>
-        <h2 id="signatories">Printed Timetable and Signatories</h2>
-        <p className="muted">Shown on the printed Faculty Teaching Load: the campus lines under the university name,
-          and the four signatories at the bottom. Only administrators can change these.</p>
+        <h2 id="signatories">Printed Forms and Signatories</h2>
+        <p className="muted">Shown on the printed Faculty Teaching Load, Individual Daily Program, and List of Students:
+          the lines under the university name and the signatories. The &ldquo;Prepared by&rdquo; signatory of the teaching
+          load also signs the IDP under the dean and reviews the class lists. Only administrators can change these.</p>
         <form action={savePrintSettings}>
           <div className="form-row">
             <div><label>Campus or unit</label><input type="text" name="print_unit" maxLength={255} defaultValue={print.print_unit} /></div>
             <div><label>Address</label><input type="text" name="print_address" maxLength={255} defaultValue={print.print_address} /></div>
+          </div>
+          <p className="muted">Letterhead of the Individual Daily Program and the List of Students:</p>
+          <div className="form-row">
+            <div><label>Region</label><input type="text" name="print_region" maxLength={255} defaultValue={print.print_region} /></div>
+            <div><label>University address</label><input type="text" name="print_main_address" maxLength={255} defaultValue={print.print_main_address} /></div>
+            <div><label>Telephone</label><input type="text" name="print_phone" maxLength={255} defaultValue={print.print_phone} /></div>
           </div>
           {SIGNERS.map(([key, label]) => (
             <div className="form-row" key={key}>

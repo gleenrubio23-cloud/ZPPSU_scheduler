@@ -34,7 +34,7 @@ export default async function TimetablePage({ searchParams }: { searchParams: Pr
 
   const column = { faculty: 'o.faculty_id', room: 's.room_id', section: 'o.section_id' }[view];
   const meetings = await db.rows(sql`
-    SELECT s.day, s.start_time, s.end_time, sub.code, sub.title, sec.name AS section_name,
+    SELECT o.id AS offering_id, s.day, s.start_time, s.end_time, sub.code, sub.title, sec.name AS section_name,
            r.name AS room_name, u.full_name AS faculty_name
     FROM schedules s
     JOIN offerings o ON o.id = s.offering_id
@@ -100,6 +100,9 @@ export default async function TimetablePage({ searchParams }: { searchParams: Pr
         <div>
           {!isFaculty && <a href="/timetable/overview" className="btn" style={{ marginRight: 8 }}>Whole-week overview</a>}
           {user.role === 'admin' && <a href="/settings#signatories" className="btn ghost" style={{ marginRight: 8 }}>Edit signatories</a>}
+          {view === 'faculty' && id > 0 && (
+            <a href={`/timetable/idp${isFaculty ? '' : `?id=${id}`}`} className="btn ghost" style={{ marginRight: 8 }}>Individual Daily Program</a>
+          )}
           <PrintButton />
         </div>
       </div>
@@ -150,12 +153,13 @@ export default async function TimetablePage({ searchParams }: { searchParams: Pr
         <h2>Class list</h2>
         {meetings.length === 0 ? <p className="muted">No classes scheduled.</p> : (
           <table>
-            <thead><tr><th>Day</th><th>Time</th><th>Subject</th><th>Section</th><th>Room</th><th>Faculty</th></tr></thead>
+            <thead><tr><th>Day</th><th>Time</th><th>Subject</th><th>Section</th><th>Room</th><th>Faculty</th><th /></tr></thead>
             <tbody>
               {meetings.map((m, i) => (
                 <tr key={i}>
                   <td>{DAYS[m.day]}</td><td>{fmtTime(m.start_time)} - {fmtTime(m.end_time)}</td>
                   <td><strong>{m.code}</strong> {m.title}</td><td>{m.section_name}</td><td>{m.room_name}</td><td>{m.faculty_name ?? '-'}</td>
+                  <td><a className="btn small ghost" href={`/offerings/${m.offering_id}/students`}>Class list</a></td>
                 </tr>
               ))}
             </tbody>
