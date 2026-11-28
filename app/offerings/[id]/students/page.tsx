@@ -48,14 +48,14 @@ export default async function ClassListPage({ params }: { params: Promise<{ id: 
   }));
 
   return (
-    <Shell user={user} active={isStaff ? '/offerings' : '/timetable'}>
+    <Shell user={user} active="/classlists">
       <div className="head no-print">
         <div>
           <h1>Class List: {o.code} {o.section_name}</h1>
           <span className="muted">{o.title} &middot; {o.faculty_name ?? 'No faculty yet'} &middot; {o.semester}, SY {o.school_year}</span>
         </div>
         <div className="actions">
-          <a className="btn ghost" href={isStaff ? '/offerings' : '/timetable'}>Back</a>
+          <a className="btn ghost" href="/classlists">Back</a>
           <PrintButton />
         </div>
       </div>

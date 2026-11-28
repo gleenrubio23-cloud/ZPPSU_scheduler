@@ -15,7 +15,9 @@ function menuFor(user: User): [string, string][] {
       ['/offerings', 'Class Offerings'], ['/conflicts', 'Conflict Report']);
   }
   if (user.role === 'faculty') menu.push(['/profile', 'My Profile']);
-  menu.push(['/timetable', user.role === 'faculty' ? 'My Schedule' : 'Timetables']);
+  menu.push(['/timetable', user.role === 'faculty' ? 'My Schedule' : 'Timetables'],
+    ['/timetable/idp', user.role === 'faculty' ? 'My IDP' : 'Individual Daily Program'],
+    ['/classlists', user.role === 'faculty' ? 'My Class Lists' : 'Class Lists']);
   if (user.role === 'admin') {
     menu.push(['/users', 'Users'], ['/departments', 'Departments'], ['/rooms', 'Rooms'], ['/terms', 'Terms'],
       ['/settings', 'Settings']);

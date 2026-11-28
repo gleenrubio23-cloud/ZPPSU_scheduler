@@ -77,9 +77,9 @@ Server actions are public endpoints, so each one checks the user again.
 ## Printed forms
 
 - **Faculty Teaching Load**: Timetables, then Print.
-- **Individual Daily Program (IDP)**: Timetables (faculty view), then *Individual Daily Program*. Prints landscape on long bond.
+- **Individual Daily Program (IDP)**: the *Individual Daily Program* menu (faculty: *My IDP*). Prints landscape on long bond.
   Official time comes from the faculty member's availability; the number of students comes from the class list when one was entered.
-- **List of Students (class list)**: Class Offerings, then *Class list* (faculty open it from My Schedule). Paste one student per
+- **List of Students (class list)**: Class Offerings, then *Class list* (or the Class Lists menu; faculty use My Class Lists). Paste one student per
   line as `SURNAME, First Name MI`, save, then Print (A4). Only the admin and the department chair can edit it;
   the assigned faculty member can view and print it.
 

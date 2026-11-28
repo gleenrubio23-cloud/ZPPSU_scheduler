@@ -70,7 +70,7 @@ export default async function IdpPage({ searchParams }: { searchParams: Promise<
   const blanks = (n: number) => Array.from({ length: n }, (_, i) => <td key={i} />);
 
   return (
-    <Shell user={user} active="/timetable">
+    <Shell user={user} active="/timetable/idp">
       <div className="head no-print">
         <h1>Individual Daily Program</h1>
         <div className="actions">
