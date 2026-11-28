@@ -92,6 +92,7 @@ export default async function OfferingsPage() {
                         <td><div className="actions">
                           <a className="btn small" href={`/offerings/${o.id}/match`}>{o.faculty_id ? 'Change faculty' : 'Match faculty'}</a>
                           <a className="btn small ghost" href={`/offerings/${o.id}/schedule`}>Schedule</a>
+                          <a className="btn small ghost" href={`/offerings/${o.id}/students`}>Class list</a>
                           <ActionButton action={deleteOffering} fields={{ offering_id: o.id }} label="Remove" className="small danger"
                             confirm="Remove this class offering and its schedule?" />
                         </div></td>

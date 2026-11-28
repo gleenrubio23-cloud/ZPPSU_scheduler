@@ -1,5 +1,6 @@
 /**
- * Text printed on the Faculty Teaching Load form: the campus lines in the header and the four signatories.
+ * Text printed on the forms (Faculty Teaching Load, Individual Daily Program, List of Students):
+ * the letterhead lines and the four signatories.
  * Stored in the settings table (names starting with print_ or sign_) and edited on the Settings page.
  */
 import { db, sql } from './db';
@@ -14,6 +15,9 @@ export const SIGNERS = [
 export const PRINT_DEFAULTS: Record<string, string> = {
   print_unit: 'BAYOG EXTENSION PROGRAM DELIVERING UNIT',
   print_address: 'Bayog, Zamboanga del Sur',
+  print_region: 'Region IX, Western Mindanao',
+  print_main_address: 'R.T. Lim Boulevard Baliwasan, Zamboanga City',
+  print_phone: 'Telephone No: 995-4024 / 991-4012',
   sign_prepared_name: 'PROF. ARLENE H. SORIANO',
   sign_prepared_title: 'Administrator, ZPPSU-Bayog EPDU',
   sign_concurred_name: 'KIER P. DELA CALZADA, Ed.D',

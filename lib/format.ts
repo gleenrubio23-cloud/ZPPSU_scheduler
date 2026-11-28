@@ -8,6 +8,11 @@ export function fmtTime(time: string): string {
   return `${hour}:${String(m).padStart(2, '0')} ${suffix}`;
 }
 
+/** Time as written on the printed forms: "4:30 PM", with noon as "12:00 NN". */
+export function formTime(time: string): string {
+  return time.startsWith('12:00') ? '12:00 NN' : fmtTime(time);
+}
+
 /** "13:30:00" -> "13:30" */
 export function hhmm(time: string): string {
   return time.slice(0, 5);
