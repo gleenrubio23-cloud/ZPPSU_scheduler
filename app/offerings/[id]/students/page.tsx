@@ -60,7 +60,14 @@ export default async function ClassListPage({ params }: { params: Promise<{ id: 
         </div>
       </div>
 
-      <div className="card no-print">
+      {!isStaff && (
+        <div className="alert warning no-print" style={{ display: 'block' }}>
+          {names.length ? `${names.length} student(s) listed.` : 'No students have been listed yet.'} The class list is
+          kept by the administrator and the program chair. Ask them for any correction.
+        </div>
+      )}
+
+      {isStaff && <div className="card no-print">
         <h2>Students ({names.length})</h2>
         <p className="muted">Type or paste one student per line as <b>SURNAME, First Name MI</b>. Numbers at the start
           of a line are removed, so a list copied from a spreadsheet or an old class list can be pasted as it is.
@@ -71,7 +78,7 @@ export default async function ClassListPage({ params }: { params: Promise<{ id: 
           <p><label style={{ display: 'inline' }}><input type="checkbox" name="sort" value="1" defaultChecked /> Sort alphabetically</label></p>
           <button type="submit">Save class list</button>
         </form>
-      </div>
+      </div>}
 
       <div className="paper-wrap">
         <div className="form-sheet cl-sheet">

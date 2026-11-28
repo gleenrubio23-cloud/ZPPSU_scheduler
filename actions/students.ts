@@ -1,7 +1,7 @@
 'use server';
 /** Class lists: saving the students of a class offering. */
 import { redirect } from 'next/navigation';
-import { canManageDept, deny, flash, requireUser } from '@/lib/auth';
+import { canManageDept, deny, flash, requireRole } from '@/lib/auth';
 import { loadOffering } from '@/lib/conflict';
 import { sql, transaction } from '@/lib/db';
 import { int, str } from '@/lib/format';
@@ -10,10 +10,10 @@ import { ensureStudentsTable, parseNames } from '@/lib/students';
 const MAX_STUDENTS = 300;
 
 export async function saveClassList(form: FormData): Promise<void> {
-  const user = await requireUser();
+  const user = await requireRole('admin', 'chair');
   const o = await loadOffering(int(form, 'offering_id'));
-  // The admin, the chair of the subject's department, or the faculty member teaching the class.
-  if (!o || !(canManageDept(user, o.department_id) || (o.faculty_id !== null && o.faculty_id === user.id))) return deny();
+  // Only the admin and the chair of the subject's department edit class lists; faculty can only view and print them.
+  if (!o || !canManageDept(user, o.department_id)) return deny();
   const back = `/offerings/${o.id}/students`;
 
   let names = parseNames(str(form, 'names'));

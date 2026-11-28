@@ -80,7 +80,8 @@ Server actions are public endpoints, so each one checks the user again.
 - **Individual Daily Program (IDP)**: Timetables (faculty view), then *Individual Daily Program*. Prints landscape on long bond.
   Official time comes from the faculty member's availability; the number of students comes from the class list when one was entered.
 - **List of Students (class list)**: Class Offerings, then *Class list* (faculty open it from My Schedule). Paste one student per
-  line as `SURNAME, First Name MI`, save, then Print (A4). The admin, the department chair, and the assigned faculty member can edit it.
+  line as `SURNAME, First Name MI`, save, then Print (A4). Only the admin and the department chair can edit it;
+  the assigned faculty member can view and print it.
 
 The letterhead lines and signatories of all three forms are set by the administrator under Settings.
 The class-list table is created automatically the first time it is used, so an existing database does not need `db:setup` again.
