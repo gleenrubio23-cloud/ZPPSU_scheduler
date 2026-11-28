@@ -12,8 +12,8 @@ const MAX_STUDENTS = 300;
 export async function saveClassList(form: FormData): Promise<void> {
   const user = await requireUser();
   const o = await loadOffering(int(form, 'offering_id'));
-  // The admin, the chair of the subject's department, or the faculty member teaching the class.
-  if (!o || !(canManageDept(user, o.department_id) || (o.faculty_id !== null && o.faculty_id === user.id))) return deny();
+  // Only the admin or the chair of the subject's department may change a class list; faculty can only view it.
+  if (!o || !canManageDept(user, o.department_id)) return deny();
   const back = `/offerings/${o.id}/students`;
 
   let names = parseNames(str(form, 'names'));

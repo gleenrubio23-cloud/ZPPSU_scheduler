@@ -60,6 +60,13 @@ export default async function ClassListPage({ params }: { params: Promise<{ id: 
         </div>
       </div>
 
+      {!isStaff ? (
+        <div className="card no-print">
+          <h2>Students ({names.length})</h2>
+          <p className="muted">Only the program chair or the administrator can change this class list.
+            {names.length === 0 && ' No students have been entered yet.'}</p>
+        </div>
+      ) : (
       <div className="card no-print">
         <h2>Students ({names.length})</h2>
         <p className="muted">Type or paste one student per line as <b>SURNAME, First Name MI</b>. Numbers at the start
@@ -72,6 +79,7 @@ export default async function ClassListPage({ params }: { params: Promise<{ id: 
           <button type="submit">Save class list</button>
         </form>
       </div>
+      )}
 
       <div className="paper-wrap">
         <div className="form-sheet cl-sheet">
